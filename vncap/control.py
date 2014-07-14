@@ -32,9 +32,20 @@ class ControlProtocol(LineReceiver):
             ws = d.get("ws", False)
             tls = d.get("tls", False)
             client_opts = d.get("client", {})
+            exclusive = d.get("exclusive", False)
 
             # Allocate the source port.
             sport = self.factory.allocate_port(sport)
+
+            # Kill existing connections to destination
+            conn_key = "%s:%d" % (host, dport)
+            if exclusive and conn_key in self.factory.connections:
+                log.msg('killing existing connection %s' % conn_key)
+                for (f, l) in self.factory.connections[conn_key]:
+                    if isinstance(f, WebSocketFactory):
+                        f = f.wrappedFactory
+                    f.close()
+                    l.loseConnection()
 
             factory = VNCProxy(host, dport, password, client_opts)
 
@@ -46,6 +57,8 @@ class ControlProtocol(LineReceiver):
                 listening = reactor.listenSSL(sport, factory, context)
             else:
                 listening = reactor.listenTCP(sport, factory)
+
+            self.factory.connections.setdefault(conn_key, []).append((factory, listening))
 
             # Set up our timeout.
             def timeout():
@@ -72,6 +85,7 @@ class ControlFactory(ServerFactory):
 
     def __init__(self):
         self.pool = set(range(FIRST_PORT, LAST_PORT))
+        self.connections = dict()
 
     def allocate_port(self, port=None):
         """

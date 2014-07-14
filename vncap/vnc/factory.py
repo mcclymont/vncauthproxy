@@ -76,14 +76,15 @@ class VNCProxy(Factory):
         self.port = port
         self.password = password
         self.client_opts = client_opts
+        self.server = None
 
     def buildProtocol(self, a):
-        server = self.protocol(self.password, self.client_opts)
+        self.server = self.protocol(self.password, self.client_opts)
 
         endpoint = TCP4ClientEndpoint(reactor, self.host, self.port,
                                       timeout=30)
         d = endpoint.connect(VNCClientAuthenticatorFactory(self.password))
-        d.addCallback(prepare_proxy, server)
+        d.addCallback(prepare_proxy, self.server)
 
         @d.addErrback
         def cancel_proxy(failure):
@@ -91,4 +92,9 @@ class VNCProxy(Factory):
             log.msg("Couldn't connect to server, cancelling proxy")
             server.transport.loseConnection()
 
-        return server
+        return self.server
+        
+    def close(self):
+        if self.server:
+            self.server.transport.loseConnection()
+
