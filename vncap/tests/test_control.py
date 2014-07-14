@@ -17,6 +17,9 @@ class DummyTransport(object):
 
 class DummyControlFactory(object):
 
+    def __init__(self):
+        self.connections = dict()
+
     def allocate_port(self, port=None):
         if port:
             return port

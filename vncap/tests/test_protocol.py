@@ -29,9 +29,24 @@ class TestVNCServerAuthenticator(unittest.TestCase):
     def test_check_version(self):
         self.t.buf = ""
         self.p.check_version("RFB 003.008\n")
-        self.assertEqual(self.t.buf, "\x02\x01\x02")
+        self.assertEqual(self.t.buf, "\x01\x02")
 
     def test_check_invalid_version(self):
         self.t.buf = ""
         self.p.check_version("RFB 002.000\n")
         self.assertTrue(self.t.lost)
+        
+class TestVNCServerAuthenticatorNoPassword(unittest.TestCase):
+
+    def setUp(self):
+        self.p = VNCServerAuthenticator(None, {})
+        self.t = DummyTransport()
+        self.p.makeConnection(self.t)
+
+    def test_connectionMade(self):
+        self.assertEqual(self.t.buf, "RFB 003.008\n")
+
+    def test_check_version(self):
+        self.t.buf = ""
+        self.p.check_version("RFB 003.008\n")
+        self.assertEqual(self.t.buf, "\x01\x01")
