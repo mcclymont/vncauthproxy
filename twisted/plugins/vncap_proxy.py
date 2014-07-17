@@ -9,6 +9,8 @@ class ProxyOptions(Options):
     optParameters = [
         ["control", "c", "tcp:8888:interface=localhost",
          "Endpoint for the control socket"],
+        ["range", "r", "5800:6000",
+         "Range (inclusive) of ports available for forwarding"]
     ]
 
 class ProxyServiceMaker(object):
@@ -25,6 +27,6 @@ class ProxyServiceMaker(object):
         """
 
         from vncap.control import ControlFactory
-        return service(options["control"], ControlFactory())
+        return service(options["control"], ControlFactory(options["range"]))
 
 servicemaker = ProxyServiceMaker()

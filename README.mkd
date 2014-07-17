@@ -24,6 +24,11 @@ Running on a local UNIX socket:
 
     $ twistd -n vncap -c unix:/tmp/vncap.sock
 
+By default, the port range of incoming proxy connections is hardcoded
+in the python source. To override them, specify the -r command line option:
+
+    $ twistd -n vncap -r 10000:20000
+
 Requirements:
 
  * Twisted 10.2 or newer

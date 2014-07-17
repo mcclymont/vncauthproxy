@@ -83,8 +83,12 @@ class ControlProtocol(LineReceiver):
 class ControlFactory(ServerFactory):
     protocol = ControlProtocol
 
-    def __init__(self):
-        self.pool = set(range(FIRST_PORT, LAST_PORT))
+    def __init__(self, ports=None):
+        if ports:
+            start, end = map(int, ports.split(":"))
+        else:
+            start, end = FIRST_PORT, LAST_PORT
+        self.pool = set(range(start, end + 1))
         self.connections = dict()
 
     def allocate_port(self, port=None):
